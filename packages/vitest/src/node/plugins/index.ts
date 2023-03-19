@@ -96,7 +96,7 @@ export async function VitestPlugin(options: UserConfig = {}, ctx = new Vitest('t
 
         let open: string | boolean | undefined
 
-        if (preOptions.ui && preOptions.open)
+        if (preOptions.ui && preOptions.open && preOptions.watch)
           open = preOptions.uiBase ?? '/__vitest__/'
         else if (preOptions.browser)
           open = '/'

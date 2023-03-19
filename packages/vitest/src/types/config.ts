@@ -649,7 +649,7 @@ export interface ResolvedConfig extends Omit<Required<UserConfig>, 'config' | 'f
   coverage: ResolvedCoverageOptions
   snapshotOptions: SnapshotStateOptions
 
-  reporters: (Reporter | BuiltinReporters)[]
+  reporters: (Reporter | BuiltinReporters | 'html')[]
 
   defines: Record<string, any>
 
