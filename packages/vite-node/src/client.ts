@@ -304,6 +304,24 @@ export class ViteNodeRunner {
       filename: __filename,
       dirname: __dirname,
     }
+    if (typeof import.meta.resolve !== 'undefined') {
+      // check if 2nd argument feature is available
+      let ok = false
+      try {
+        // old Node returns Promise
+        const testParent = await import.meta.resolve('.', new URL('./__test_parent__/', import.meta.url))
+        ok = typeof testParent === 'string' && testParent.endsWith('/__test_parent__/')
+      }
+      catch {
+        // old Node throws when invalid path
+      }
+      (meta as any).resolve = (specifier: string, parent?: string | URL) => {
+        if (!ok)
+          throw new Error('[vite-node] "--experimental-import-meta-resolve" is required to enable "import.meta.resolve"')
+        return import.meta.resolve(specifier, parent ?? href)
+      }
+    }
+
     const exports = Object.create(null)
     Object.defineProperty(exports, Symbol.toStringTag, {
       value: 'Module',
