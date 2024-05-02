@@ -90,5 +90,8 @@ export function createMethodsRPC(project: WorkspaceProject): RuntimeRPC {
     getCountOfFailedTests() {
       return ctx.state.getCountOfFailedTests()
     },
+    detectAsyncLeaks(hangingOps) {
+      ctx.hangingOps?.push(...hangingOps)
+    },
   }
 }
