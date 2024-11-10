@@ -44,11 +44,8 @@ export class VitestTestRunner implements VitestRunner {
     this.workerState.current = file
   }
 
-  onBeforeRunFiles() {
-    this.snapshotClient.clear()
-  }
-
   onAfterRunFiles() {
+    this.snapshotClient.clear()
     this.workerState.current = undefined
   }
 
@@ -62,11 +59,16 @@ export class VitestTestRunner implements VitestRunner {
       for (const test of getTests(suite)) {
         if (test.mode === 'skip') {
           const name = getNames(test).slice(1).join(' > ')
-          this.snapshotClient.skipTestSnapshots(name)
+          await this.snapshotClient.setupTest(
+            test.file.filepath,
+            test.id,
+            this.workerState.config.snapshotOptions,
+          )
+          this.snapshotClient.skipTest(test.id, name)
         }
       }
 
-      const result = await this.snapshotClient.finishCurrentRun()
+      const result = await this.snapshotClient.finish(suite.file.filepath)
       if (result) {
         await rpc().snapshotSaved(result)
       }
@@ -76,8 +78,6 @@ export class VitestTestRunner implements VitestRunner {
   }
 
   onAfterRunTask(test: Task) {
-    this.snapshotClient.clearTest()
-
     if (this.config.logHeapUsage && typeof process !== 'undefined') {
       test.result!.heap = process.memoryUsage().heapUsed
     }
@@ -109,20 +109,22 @@ export class VitestTestRunner implements VitestRunner {
     }
 
     // initialize snapshot state before running file suite
-    if (suite.mode !== 'skip' && 'filepath' in suite) {
-      // default "name" is irrelevant for Vitest since each snapshot assertion
-      // (e.g. `toMatchSnapshot`) specifies "filepath" / "name" pair explicitly
-      await this.snapshotClient.startCurrentRun(
-        (suite as File).filepath,
-        '__default_name_',
-        this.workerState.config.snapshotOptions,
-      )
-    }
+    // if (suite.mode !== 'skip' && 'filepath' in suite) {
+    //   await this.snapshotClient.setup(
+    //     suite.file.filepath,
+    //     this.workerState.config.snapshotOptions,
+    //   )
+    // }
 
     this.workerState.current = suite
   }
 
-  onBeforeTryTask(test: Task) {
+  async onBeforeTryTask(test: Task) {
+    const snapshotState = await this.snapshotClient.setupTest(
+      test.file.filepath,
+      test.id,
+      this.workerState.config.snapshotOptions,
+    )
     setState(
       {
         assertionCalls: 0,
@@ -132,7 +134,7 @@ export class VitestTestRunner implements VitestRunner {
         expectedAssertionsNumberErrorGen: null,
         testPath: test.file.filepath,
         currentTestName: getTestName(test),
-        snapshotState: this.snapshotClient.snapshotState,
+        snapshotState,
       },
       (globalThis as any)[GLOBAL_EXPECT],
     )

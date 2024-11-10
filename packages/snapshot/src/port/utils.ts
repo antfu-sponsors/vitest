@@ -265,3 +265,49 @@ export function deepMergeSnapshot(target: any, source: any): any {
   }
   return target
 }
+
+export class DefaultMap<K, V> extends Map<K, V> {
+  constructor(
+    private defaultFn: (key: K) => V,
+    entries?: Iterable<readonly [K, V]>,
+  ) {
+    super(entries)
+  }
+
+  override get(key: K): V {
+    if (!this.has(key)) {
+      this.set(key, this.defaultFn(key))
+    }
+    return super.get(key)!
+  }
+}
+
+export class CounterMap<K> extends Map<K, number> {
+  increment(key: K): void {
+    this.set(key, (this.get(key) ?? 0) + 1)
+  }
+
+  total(): number {
+    let total = 0
+    for (const x of this.values()) {
+      total += x
+    }
+    return total
+  }
+}
+
+export class PromiseMap<K, V> extends Map<K, V> {
+  private inner = new Map<K, Promise<V>>()
+
+  getOrCreate(key: K, createFn: () => Promise<V>): Promise<V> {
+    let promise = this.inner.get(key)
+    if (!promise) {
+      promise = createFn().then((value) => {
+        this.set(key, value)
+        return value
+      })
+      this.inner.set(key, promise)
+    }
+    return promise
+  }
+}
