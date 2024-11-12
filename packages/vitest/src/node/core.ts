@@ -272,7 +272,7 @@ export class Vitest {
     }
 
     const workspaceModule = await this.runner.executeFile(workspaceConfigPath) as {
-      default: ReturnType<typeof defineWorkspace>
+      default: ReturnType<typeof defineWorkspace> | undefined
     }
 
     if (!workspaceModule.default || !Array.isArray(workspaceModule.default)) {
@@ -636,7 +636,7 @@ export class Vitest {
         this.config.related = undefined
       })
 
-    return await this.runningPromise
+    return this.runningPromise
   }
 
   async collectFiles(specs: WorkspaceSpec[]) {
@@ -676,7 +676,7 @@ export class Vitest {
         process.exitCode = 1
       }
     })()
-      .finally(async () => {
+      .finally(() => {
         this.runningPromise = undefined
 
         // all subsequent runs will treat this as a fresh run
@@ -684,7 +684,7 @@ export class Vitest {
         this.config.related = undefined
       })
 
-    return await this.runningPromise
+    return this.runningPromise
   }
 
   async cancelCurrentRun(reason: CancelReason) {
@@ -769,7 +769,7 @@ export class Vitest {
     }
   }
 
-  private _rerunTimer: any
+  private _rerunTimer: NodeJS.Timer | undefined
   private async scheduleRerun(triggerId: string[]) {
     const currentCount = this.restartsCount
     clearTimeout(this._rerunTimer)
@@ -863,7 +863,7 @@ export class Vitest {
     this.updateLastChanged(id)
     const needsRerun = this.handleFileChanged(id)
     if (needsRerun.length) {
-      this.scheduleRerun(needsRerun)
+      void this.scheduleRerun(needsRerun)
     }
   }
 
@@ -877,7 +877,7 @@ export class Vitest {
       this.cache.results.removeFromCache(id)
       this.cache.stats.removeStats(id)
       this.changedTests.delete(id)
-      this.report('onTestRemoved', id)
+      void this.report('onTestRemoved', id)
     }
   }
 
@@ -895,13 +895,13 @@ export class Vitest {
 
     if (matchingProjects.length > 0) {
       this.changedTests.add(id)
-      this.scheduleRerun([id])
+      void this.scheduleRerun([id])
     }
     else {
       // it's possible that file was already there but watcher triggered "add" event instead
       const needsRerun = this.handleFileChanged(id)
       if (needsRerun.length) {
-        this.scheduleRerun(needsRerun)
+        void this.scheduleRerun(needsRerun)
       }
     }
   }
@@ -987,7 +987,7 @@ export class Vitest {
         })
       }
 
-      if (rerun) {
+      if (rerun as boolean) {
         files.push(filepath)
       }
     }
@@ -1023,7 +1023,7 @@ export class Vitest {
           teardownProjects.push(this.coreWorkspaceProject)
         }
         // do teardown before closing the server
-        for await (const project of teardownProjects.reverse()) {
+        for (const project of teardownProjects.reverse()) {
           await project.teardownGlobalSetup()
         }
 
