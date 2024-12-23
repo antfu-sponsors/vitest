@@ -1002,8 +1002,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       tinyglobby:
-        specifier: ^0.2.10
-        version: 0.2.10
+        specifier: https://pkg.pr.new/tinyglobby@a4820cc
+        version: https://pkg.pr.new/tinyglobby@a4820cc
       ws:
         specifier: ^8.18.0
         version: 8.18.0
@@ -8790,6 +8790,11 @@ packages:
 
   tinyglobby@0.2.10:
     resolution: {integrity: sha512-Zc+8eJlFMvgatPZTl6A9L/yht8QqdmUNtURHaKZLmKBE12hNPSrqNkUp2cs3M/UKmNVVAMFQYSjYIVHDjW5zew==}
+    engines: {node: '>=12.0.0'}
+
+  tinyglobby@https://pkg.pr.new/tinyglobby@a4820cc:
+    resolution: {tarball: https://pkg.pr.new/tinyglobby@a4820cc}
+    version: 0.2.10
     engines: {node: '>=12.0.0'}
 
   tinyhighlight@0.3.2:
@@ -18369,6 +18374,11 @@ snapshots:
   tinyexec@0.3.1: {}
 
   tinyglobby@0.2.10:
+    dependencies:
+      fdir: 6.4.2(picomatch@4.0.2)
+      picomatch: 4.0.2
+
+  tinyglobby@https://pkg.pr.new/tinyglobby@a4820cc:
     dependencies:
       fdir: 6.4.2(picomatch@4.0.2)
       picomatch: 4.0.2
